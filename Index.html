@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>5x5 틱택토</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #f0f0f0;
+      font-family: Arial, sans-serif;
+    }
+    .board {
+      display: grid;
+      grid-template-columns: repeat(5, 80px);
+      grid-template-rows: repeat(5, 80px);
+      gap: 5px;
+      margin: 20px;
+    }
+    .cell {
+      width: 80px;
+      height: 80px;
+      background: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 36px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 10px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+    .status {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: tomato;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: darkred;
+    }
+  </style>
+</head>
+<body>
+  <div class="status">플레이어 X 차례</div>
+  <div class="board"></div>
+  <button onclick="resetGame()">다시하기</button>
+
+  <script>
+    const size = 5; // 5x5
+    const winLength = 5; // 5칸 연속해야 승리
+    const boardElement = document.querySelector('.board');
+    const statusElement = document.querySelector('.status');
+    let board = Array(size * size).fill("");
+    let currentPlayer = "X";
+    let gameActive = true;
+
+    function renderBoard() {
+      boardElement.innerHTML = "";
+      board.forEach((cell, index) => {
+        const cellElement = document.createElement('div');
+        cellElement.classList.add('cell');
+        cellElement.innerText = cell;
+        cellElement.addEventListener('click', () => makeMove(index));
+        boardElement.appendChild(cellElement);
+      });
+    }
+
+    function makeMove(index) {
+      if (board[index] !== "" || !gameActive) return;
+      board[index] = currentPlayer;
+      renderBoard();
+      if (checkWin()) {
+        statusElement.innerText = `플레이어 ${currentPlayer} 승리! 🎉`;
+        gameActive = false;
+        return;
+      }
+      if (!board.includes("")) {
+        statusElement.innerText = "무승부 🤝";
+        gameActive = false;
+        return;
+      }
+      currentPlayer = currentPlayer === "X" ? "O" : "X";
+      statusElement.innerText = `플레이어 ${currentPlayer} 차례`;
+    }
+
+    function checkWin() {
+      // 좌표로 바꾸기
+      function get(x, y) {
+        if (x < 0 || y < 0 || x >= size || y >= size) return null;
+        return board[y * size + x];
+      }
+
+      for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+          if (get(x, y) !== currentPlayer) continue;
+
+          // 네 방향 체크
+          const directions = [
+            [1, 0], // 가로 →
+            [0, 1], // 세로 ↓
+            [1, 1], // ↘ 대각선
+            [1, -1] // ↗ 대각선
+          ];
+
+          for (let [dx, dy] of directions) {
+            let count = 0;
+            for (let i = 0; i < winLength; i++) {
+              if (get(x + dx * i, y + dy * i) === currentPlayer) {
+                count++;
+              } else break;
+            }
+            if (count === winLength) return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function resetGame() {
+      board = Array(size * size).fill("");
+      currentPlayer = "X";
+      gameActive = true;
+      statusElement.innerText = "플레이어 X 차례";
+      renderBoard();
+    }
+
+    renderBoard();
+  </script>
+</body>
+</html>
